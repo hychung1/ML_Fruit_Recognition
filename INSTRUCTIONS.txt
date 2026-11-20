@@ -89,7 +89,10 @@ B. EFFICIENTNETB0 + STREAMLIT + ANDROID APP
 
     .venv\Scripts\python deep_learning\eval_efficientnet.py
 
-4) Web demo - upload a single image and see the top-3 predictions:
+4) Web demo - upload a single image and see the top-3 predictions. Use the
+   "Chọn mô hình dự đoán" dropdown to switch between EfficientNetB0, KNN,
+   SVM and Random Forest. The classical options use the trained .joblib
+   files in models/ and require no retraining:
 
     .venv\Scripts\python -m streamlit run deep_learning\app.py
 

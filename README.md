@@ -42,7 +42,7 @@ both pipelines share the same dataset.
 | `train_efficientnet.py` | Two-phase EfficientNetB0 training → `dl_model/` |
 | `eval_efficientnet.py` | Test metrics, classification report, confusion matrix → `results_dl/` |
 | `convert_to_tflite.py` | Float16 TFLite export → `fruit_recognition_app/assets/`, with a Keras-vs-TFLite check |
-| `app.py` | Streamlit UI: upload an image, get EfficientNetB0 prediction |
+| `app.py` | Streamlit UI: upload an image, choose EfficientNetB0 / KNN / SVM / Random Forest, see top-3 predictions |
 
 ## Results (classical models, test set)
 
@@ -109,7 +109,10 @@ model into a web app). `deep_learning/app.py` currently demonstrates EfficientNe
 ```
 
 Use the venv's Python for Streamlit: the global Python 3.14 has Streamlit but
-no TensorFlow.
+no TensorFlow. The web demo has a **model selector**: EfficientNetB0 uses the
+raw-image TFLite/Keras path, while KNN/SVM/Random Forest load the trained
+joblib models from `models/` and extract the same HSV+HOG features used in
+training.
 
 Then build the app (requires Flutter SDK and an Android device):
 
