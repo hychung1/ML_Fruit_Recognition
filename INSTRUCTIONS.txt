@@ -1,87 +1,121 @@
 ========================================================================
-    FRUIT & VEGETABLE IMAGE CLASSIFICATION PROJECT (EFFICIENTNETB0)
+  FRUIT & VEGETABLE RECOGNITION - HOW TO RUN THE PROJECT
 ========================================================================
 
-PROJECT STRUCTURE
------------------
-ML_PROJECT/
-│
-├── dataset/                    <-- Ignored by Git (Must be added locally)
-│   ├── train/                  <-- 36 subfolders of fruit/veg classes
-│   ├── validation/             <-- 36 subfolders
-│   └── test/                   <-- 36 subfolders
-│
-├── eda.py                      <-- Exploratory Data Analysis & Visualization
-├── data_preprocessing.py      <-- Image resizing, normalization & augmentation
-├── train_efficientnet.py      <-- Model training & fine-tuning (Transfer Learning)
-├── eval_efficientnet.py       <-- Evaluation (Accuracy, F1-Score, Confusion Matrix)
-├── app.py                      <-- Streamlit Web Application
-├── efficientnet_b0_fruit_veg.h5<-- Saved model weights (Generated after training)
-└── INSTRUCTIONS.txt            <-- Execution guide
+There are two independent pipelines in this folder:
+  A) Classical ML: HSV + HOG features -> KNN / SVM / Random Forest
+  B) Deep learning: EfficientNetB0 -> TFLite -> Flutter Android app
 
+------------------------------------------------------------------------
+0. PREREQUISITES
+------------------------------------------------------------------------
+* Python 3.12 (TensorFlow 2.20 does not support Python 3.13/3.14).
+* Flutter SDK (only for the Android app).
+* The Kaggle dataset, downloaded and extracted locally:
+  https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 
-1. DATASET SETUP (CRITICAL)
----------------------------
-Since the dataset directory is excluded via .gitignore to optimize repository size:
+  Required layout (36 class folders in each split):
+      dataset/train/<class>/
+      dataset/validation/<class>/
+      dataset/test/<class>/
 
-1. Download the dataset from Kaggle:
-   https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
+  dataset/, .venv/, models/ and features/ are ignored by git and must be
+  generated locally. results/ contains the reported charts and metrics.
 
-2. Extract the downloaded zip file into the project directory under `dataset/`.
-   Ensure the following directory hierarchy:
-   - dataset/train/<class_names>/
-   - dataset/validation/<class_names>/
-   - dataset/test/<class_names>/
+Install Python packages from this folder:
 
+    python312 -m venv .venv
+    .venv\Scripts\python -m pip install -r requirements.txt
 
-2. PREREQUISITES & INSTALLATION
--------------------------------
-Make sure Python 3.9+ is installed. Install all required packages using pip:
+(On macOS/Linux use: python3.12 -m venv .venv && source .venv/bin/activate
+ && pip install -r requirements.txt)
 
-$ pip install tensorflow pandas numpy matplotlib seaborn pillow scikit-learn streamlit
+------------------------------------------------------------------------
+A. CLASSICAL ML PIPELINE (KNN, SVM, RANDOM FOREST)
+------------------------------------------------------------------------
+All commands are run from this folder (code/).
 
-OR
+1) Exploratory data analysis - class counts, distribution chart, samples.
+   Output: results/eda_distribution.png, results/eda_samples.png
 
-$ pip install -r requirements.txt
+    .venv\Scripts\python eda.py
 
-3. EXECUTION STEPS
-------------------
+2) Feature extraction - 512 HSV histogram + 288 HOG = 800 values per image.
+   Cached in features/*_features.joblib; scaler saved to models/scaler.joblib.
+   Only the training split is used to fit the StandardScaler (no leakage).
 
-Step 1: Exploratory Data Analysis (EDA)
---------------------------------------
-Inspect dataset statistics, class distribution, and display random sample images:
-> python eda.py
+    .venv\Scripts\python feature_extraction.py
 
-Step 2: Verify Data Preprocessing
----------------------------------
-Verify directory paths, target dimensions (224x224), and data generator flows:
-> python data_preprocessing.py
+3) Train and tune each classifier. Each script prints test metrics and a
+   classification report, saves a confusion matrix in results/, and writes
+   its tuned model to models/<name>_model.joblib.
 
-Step 3: Model Training & Fine-Tuning
-------------------------------------
-Train the EfficientNetB0 model using two-stage Transfer Learning:
-  - Phase 1: Feature Extraction with frozen ImageNet base weights.
-  - Phase 2: Fine-Tuning top 30 layers with a lower learning rate.
-The best model checkpoint will be saved automatically as `efficientnet_b0_fruit_veg.h5`.
-> python train_efficientnet.py
+    .venv\Scripts\python train_knn.py
+    .venv\Scripts\python train_svm.py
+    .venv\Scripts\python train_rf.py
 
-Step 4: Model Evaluation
-------------------------
-Evaluate the trained model on the unseen test set to generate classification metrics
-(Accuracy, Precision, Recall, F1-Score) and export the Confusion Matrix image:
-> python eval_efficientnet.py
+4) Compare the three models. Requires all three .joblib files from step 3.
+   Output: results/metrics_summary.csv and results/comparison_chart.png
 
-Step 5: Run Interactive Streamlit App
--------------------------------------
-Launch the local web application to upload custom images and perform live predictions:
-> streamlit run app.py
+    .venv\Scripts\python compare_models.py
 
-The application will open automatically in your browser at http://localhost:8501.
+   Note: compare_models.py divides the total prediction time by 359, the
+   number of images in the test split. Change that constant if your dataset
+   has a different test size.
 
+------------------------------------------------------------------------
+B. EFFICIENTNETB0 + STREAMLIT + ANDROID APP
+------------------------------------------------------------------------
+1) (Optional) Inspect the data / generators used for the deep model:
 
-4. TROUBLESHOOTING
-------------------
-- If Streamlit throws a `use_column_width` error, ensure line 61 in `app.py` 
-  uses `use_container_width=True`.
-- If GPU memory errors occur during training, reduce `BATCH_SIZE` from 32 to 16 
-  in `train_efficientnet.py`.
+    .venv\Scripts\python data_processing.py
+    .venv\Scripts\python data_visualization.py
+
+2) (Optional) Retrain EfficientNetB0 - two phases: frozen ImageNet base,
+   then fine-tuning of the top layers. Best checkpoint is written to
+   trained_model/efficientnet_b0_fruit_veg.h5:
+
+    .venv\Scripts\python train_efficientnet.py
+
+3) Evaluate the trained model on the test split. Prints accuracy, macro
+   precision/recall/F1, a per-class report and saves a confusion matrix:
+
+    .venv\Scripts\python eval_efficientnet.py
+
+4) Web demo - upload a single image and see the top-3 predictions:
+
+    .venv\Scripts\python -m streamlit run app.py
+
+5) Export for the Android app. Writes fruit_recognition_app/assets/
+   fruit_model.tflite (float16, ~8 MB) and labels.txt, then verifies that
+   TFLite and Keras agree on one test image from every class:
+
+    .venv\Scripts\python convert_to_tflite.py
+
+6) Run / build the Android app (Flutter SDK required):
+
+    cd fruit_recognition_app
+    flutter pub get
+    flutter run
+    flutter build apk --release --split-per-abi
+
+   Use app-arm64-v8a-release.apk for modern phones. The APK is not kept in
+   git; build it or use the release published on GitHub.
+
+IMPORTANT: In Keras 3, efficientnet.preprocess_input does nothing - the
+model performs rescaling/normalization internally. The converter and the
+Flutter app both supply raw 0-255 RGB pixels. Do not normalize again.
+
+------------------------------------------------------------------------
+TROUBLESHOOTING
+------------------------------------------------------------------------
+* "No module named cv2" / "No module named skimage" / "No module named joblib"
+  -> install the classical-ML dependencies: pip install -r requirements.txt
+* "No matching distribution found for tensorflow" on Python 3.14
+  -> use Python 3.12 for this project.
+* Dataset paths not found -> confirm dataset/train, dataset/validation and
+  dataset/test exist directly inside this code/ folder.
+* GPU out of memory while training EfficientNetB0
+  -> reduce BATCH_SIZE from 32 to 16 in train_efficientnet.py.
+* Old cached features after editing the dataset
+  -> delete the features/ folder and rerun feature_extraction.py.

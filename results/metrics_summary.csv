@@ -1,0 +1,4 @@
+﻿Thuật toán,Siêu tham số tối ưu,Accuracy (%),Macro Precision (%),Macro Recall (%),Macro F1-Score (%),Tốc độ (ms/ảnh)
+KNN,"{'n_neighbors': 1, 'metric': 'manhattan'}",96.66,97.11,96.6,96.57,0.87
+SVM,"{'kernel': 'linear', 'C': 1.0}",97.21,97.45,97.16,97.12,0.76
+Random Forest,"{'n_estimators': 100, 'max_depth': 30}",97.21,97.48,97.16,97.14,0.08

@@ -4,4 +4,6 @@ dataset/**/*.png
 dataset/**/*.webp
 .venv/
 .idea/
+models/*.joblib
+features/
 __pycache__/
