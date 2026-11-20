@@ -108,6 +108,9 @@ model into a web app). `deep_learning/app.py` currently demonstrates EfficientNe
 .\.venv\Scripts\python -m streamlit run deep_learning\app.py # web demo
 ```
 
+Use the venv's Python for Streamlit: the global Python 3.14 has Streamlit but
+no TensorFlow.
+
 Then build the app (requires Flutter SDK and an Android device):
 
 ```powershell

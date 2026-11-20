@@ -120,6 +120,12 @@ TROUBLESHOOTING
   -> install the classical-ML dependencies: pip install -r requirements.txt
 * "No matching distribution found for tensorflow" on Python 3.14
   -> use Python 3.12 for this project.
+* app.py fails with "No module named tensorflow" (or the venv says
+  "No module named streamlit")
+  -> always start the web demo with:
+     .venv\Scripts\python -m streamlit run deep_learning\app.py
+  Global Python 3.14 has Streamlit but no TensorFlow; the .venv has
+  TensorFlow and must have Streamlit installed from requirements.txt.
 * Dataset paths not found -> confirm dataset/train, dataset/validation and
   dataset/test exist directly inside this code/ folder.
 * GPU out of memory while training EfficientNetB0
