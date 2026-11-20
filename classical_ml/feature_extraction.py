@@ -22,7 +22,7 @@ from skimage.feature import hog
 from sklearn.preprocessing import StandardScaler
 from PIL import Image
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 FEATURES_DIR = os.path.join(BASE_DIR, "features")
 MODELS_DIR = os.path.join(BASE_DIR, "models")

@@ -14,7 +14,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 # ==========================================
 # 1. THIẾT LẬP ĐƯỜNG DẪN & SIÊU THAM SỐ
 # ==========================================
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRAIN_PATH = os.path.join(current_dir, 'dataset', 'train')
 VAL_PATH   = os.path.join(current_dir, 'dataset', 'validation')
 TEST_PATH  = os.path.join(current_dir, 'dataset', 'test')
@@ -93,7 +93,7 @@ model.compile(
 
 # Đặt các hàm Callbacks để tự động quản lý quá trình Train
 callbacks_phase1 = [
-    ModelCheckpoint(os.path.join(current_dir, 'best_efficientnet_phase1.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
+    ModelCheckpoint(os.path.join(current_dir, 'dl_model', 'best_efficientnet_phase1.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
     EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1)
 ]
 
@@ -125,7 +125,7 @@ model.compile(
 
 # Callbacks cho Fine-tuning
 callbacks_phase2 = [
-    ModelCheckpoint(os.path.join(current_dir, 'efficientnet_b0_fruit_veg.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
+    ModelCheckpoint(os.path.join(current_dir, 'dl_model', 'efficientnet_b0_fruit_veg.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-7, verbose=1),
     EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True, verbose=1)
 ]
@@ -179,7 +179,7 @@ plt.grid(True)
 plt.tight_layout()
 
 # Lưu biểu đồ về đĩa cứng để chèn vào Báo cáo & Slide
-chart_path = os.path.join(current_dir, 'accuracy_loss_efficientnet.png')
+chart_path = os.path.join(current_dir, 'results_dl', 'accuracy_loss_efficientnet.png')
 plt.savefig(chart_path, dpi=300)
 print(f"\n[OK] Đã vẽ và lưu biểu đồ Accuracy/Loss tại: {chart_path}")
 plt.show()

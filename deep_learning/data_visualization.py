@@ -7,7 +7,7 @@ import seaborn as sns
 from PIL import Image
 
 # 1. Đường dẫn thư mục
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRAIN_PATH = os.path.join(current_dir, 'dataset', 'train')
 VAL_PATH   = os.path.join(current_dir, 'dataset', 'validation')
 TEST_PATH  = os.path.join(current_dir, 'dataset', 'test')

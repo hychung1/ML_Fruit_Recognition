@@ -33,8 +33,8 @@ CLASS_NAMES = [
 # ---------------------------------------------------------
 @st.cache_resource
 def load_efficientnet_model():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(current_dir, 'trained_model', 'efficientnet_b0_fruit_veg.h5')
+    current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_path = os.path.join(current_dir, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
     model = load_model(model_path)
     return model
 

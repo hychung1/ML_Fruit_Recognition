@@ -30,7 +30,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, cla
 
 from feature_extraction import get_prepared_data, extract_features_from_image
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
 os.makedirs(MODELS_DIR, exist_ok=True)

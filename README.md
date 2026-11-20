@@ -8,24 +8,40 @@ Kaggle fruit/vegetable dataset, plus an Android app:
 
 ## Repository layout
 
+All Python code lives in two script folders; data and generated files stay at the root so
+both pipelines share the same dataset.
+
 | Path | What it is |
 | --- | --- |
+| `classical_ml/` | KNN / SVM / Random Forest pipeline (see files below) |
+| `deep_learning/` | EfficientNetB0 training, evaluation, export and Streamlit demo |
 | `dataset/` | Kaggle images (not in git — add locally, see below) |
-| `eda.py` | Dataset statistics, class-distribution chart and sample grid → `results/` |
-| `data_processing.py`, `data_visualization.py` | Original exploratory data generators / plots for the deep-learning path |
-| `feature_extraction.py` | Extracts 800 features per image (512 HSV histogram + 288 HOG), caches them in `features/`, fits `StandardScaler` on train only → `models/scaler.joblib` |
-| `train_knn.py` | Tunes k (1–21) and distance (Euclidean/Manhattan), evaluates on test → `models/knn_model.joblib` |
-| `train_svm.py` | Tunes kernel/C/gamma, evaluates on test → `models/svm_model.joblib` |
-| `train_rf.py` | Tunes trees/depth, reports feature importance, evaluates on test → `models/rf_model.joblib` |
-| `compare_models.py` | Loads the three saved models and writes `results/metrics_summary.csv` + `results/comparison_chart.png` |
-| `train_efficientnet.py` | Two-phase EfficientNetB0 training (frozen base, then fine-tune top layers) |
-| `eval_efficientnet.py` | Test metrics + classification report + confusion matrix |
-| `app.py` | Streamlit UI: upload an image, get EfficientNetB0 prediction |
-| `convert_to_tflite.py` | Converts the Keras model to float16 TFLite, writes `fruit_recognition_app/assets/`, and checks Keras vs TFLite on one test image per class |
-| `trained_model/` | Trained EfficientNetB0 checkpoints (`.h5`) |
-| `results/`, `screenshots/` | Comparison tables, tuning plots, confusion matrices, training curves |
+| `results/` | Classical-model metrics and plots |
+| `results_dl/` | EfficientNetB0 training curve and confusion matrix |
+| `dl_model/` | Trained EfficientNetB0 checkpoints (`.h5`) |
 | `models/`, `features/` | Generated model/feature caches — ignored by git |
 | `fruit_recognition_app/` | Flutter Android app (see its own [README](fruit_recognition_app/README.md)) |
+
+`classical_ml/`:
+
+| Script | What it does |
+| --- | --- |
+| `eda.py` | Dataset statistics, class-distribution chart and sample grid → `results/` |
+| `feature_extraction.py` | 800 features per image (512 HSV histogram + 288 HOG), cached in `features/`; fits `StandardScaler` on train only → `models/scaler.joblib` |
+| `train_knn.py` | Tunes k (1–21) and distance, evaluates on test → `models/knn_model.joblib` |
+| `train_svm.py` | Tunes kernel/C/gamma, evaluates on test → `models/svm_model.joblib` |
+| `train_rf.py` | Tunes trees/depth, reports feature importance → `models/rf_model.joblib` |
+| `compare_models.py` | Writes `results/metrics_summary.csv` + `results/comparison_chart.png` |
+
+`deep_learning/`:
+
+| Script | What it does |
+| --- | --- |
+| `data_processing.py`, `data_visualization.py` | Image generators (augmentation) and exploratory plots |
+| `train_efficientnet.py` | Two-phase EfficientNetB0 training → `dl_model/` |
+| `eval_efficientnet.py` | Test metrics, classification report, confusion matrix → `results_dl/` |
+| `convert_to_tflite.py` | Float16 TFLite export → `fruit_recognition_app/assets/`, with a Keras-vs-TFLite check |
+| `app.py` | Streamlit UI: upload an image, get EfficientNetB0 prediction |
 
 ## Results (classical models, test set)
 
@@ -38,7 +54,7 @@ From `results/metrics_summary.csv`:
 | Random Forest | 100 trees, max_depth=30 | 97.21% | 97.14% | 0.08 ms/image |
 
 EfficientNetB0 metrics and curves are produced by `eval_efficientnet.py` and shown in
-`screenshots/`. In the app, TFLite inference runs at roughly 8–10 fps on a phone.
+`results_dl/`. In the app, TFLite inference runs at roughly 8–10 fps on a phone.
 
 ## Setup
 
@@ -67,28 +83,28 @@ The dataset (~2 GB) is excluded from git via `.gitignore`.
 Run from this folder, in order:
 
 ```powershell
-.\.venv\Scripts\python eda.py
-.\.venv\Scripts\python feature_extraction.py
-.\.venv\Scripts\python train_knn.py
-.\.venv\Scripts\python train_svm.py
-.\.venv\Scripts\python train_rf.py
-.\.venv\Scripts\python compare_models.py
+.\.venv\Scripts\python classical_ml\eda.py
+.\.venv\Scripts\python classical_ml\feature_extraction.py
+.\.venv\Scripts\python classical_ml\train_knn.py
+.\.venv\Scripts\python classical_ml\train_svm.py
+.\.venv\Scripts\python classical_ml\train_rf.py
+.\.venv\Scripts\python classical_ml\compare_models.py
 ```
 
-`feature_extraction.py` caches features, so later runs are fast. Editing the dataset
-requires `--force`-style re-extraction by calling `get_prepared_data(force_reload=True)`
-or deleting `features/`.
+All paths resolve relative to this folder, no matter where you launch Python from.
+`feature_extraction.py` caches features, so later runs are fast. After editing the
+dataset, delete `features/` to force re-extraction.
 
 Each `train_*.py` also exposes `predict_image_*()` helpers (used to integrate a chosen
-model into a web app). `app.py` currently demonstrates the EfficientNetB0 model only.
+model into a web app). `deep_learning/app.py` currently demonstrates EfficientNetB0 only.
 
 ## Workflow B — EfficientNetB0 + Android app
 
 ```powershell
-.\.venv\Scripts\python train_efficientnet.py       # optional: retrain the .h5
-.\.venv\Scripts\python eval_efficientnet.py
-.\.venv\Scripts\python convert_to_tflite.py        # refresh assets/fruit_model.tflite + labels.txt
-.\.venv\Scripts\python -m streamlit run app.py     # web demo
+.\.venv\Scripts\python deep_learning\train_efficientnet.py  # optional: retrain the .h5
+.\.venv\Scripts\python deep_learning\eval_efficientnet.py
+.\.venv\Scripts\python deep_learning\convert_to_tflite.py   # refresh assets/fruit_model.tflite + labels.txt
+.\.venv\Scripts\python -m streamlit run deep_learning\app.py # web demo
 ```
 
 Then build the app (requires Flutter SDK and an Android device):

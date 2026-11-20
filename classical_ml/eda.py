@@ -19,7 +19,7 @@ from PIL import Image
 import random
 
 # Thiết lập đường dẫn
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)

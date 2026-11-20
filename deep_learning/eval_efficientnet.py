@@ -12,9 +12,9 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_recall_fscore_support
 
 # 1. Đường dẫn & Tham số
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_PATH = os.path.join(current_dir, 'dataset', 'test')
-MODEL_PATH = os.path.join(current_dir, 'trained_model', 'efficientnet_b0_fruit_veg.h5')
+MODEL_PATH = os.path.join(current_dir, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
 
 IMAGE_SIZE = (224, 224)
 BATCH_SIZE = 32
@@ -75,7 +75,7 @@ plt.yticks(rotation=0)
 plt.tight_layout()
 
 # Lưu biểu đồ Confusion Matrix để đưa vào báo cáo Word/Slide
-cm_save_path = os.path.join(current_dir, 'confusion_matrix_efficientnet.png')
+cm_save_path = os.path.join(current_dir, 'results_dl', 'confusion_matrix_efficientnet.png')
 plt.savefig(cm_save_path, dpi=300)
 print(f"Đã lưu hình Confusion Matrix tại: {cm_save_path}")
 plt.show()

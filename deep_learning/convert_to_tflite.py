@@ -1,6 +1,6 @@
 """Convert the trained Keras model to TFLite for the Flutter app.
 
-Run: .venv\\Scripts\\python convert_to_tflite.py
+Run (from code/): .venv\\Scripts\\python deep_learning\\convert_to_tflite.py
 Writes fruit_model.tflite + labels.txt into ../fruit_recognition_app/assets/
 and checks the TFLite output against Keras on one test image.
 """
@@ -12,9 +12,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.utils import load_img, img_to_array
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(HERE, 'fruit_recognition_app', 'assets')
-MODEL_H5 = os.path.join(HERE, 'trained_model', 'efficientnet_b0_fruit_veg.h5')
+MODEL_H5 = os.path.join(HERE, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
 
 os.makedirs(ASSETS, exist_ok=True)
 

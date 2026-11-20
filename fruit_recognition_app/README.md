@@ -45,10 +45,10 @@ trained Keras model (float16 weights, ~8 MB instead of ~16 MB):
 
 ```sh
 cd ..
-.venv\Scripts\python convert_to_tflite.py
+.venv\Scripts\python deep_learning\convert_to_tflite.py
 ```
 
-Re-run it whenever `trained_model/efficientnet_b0_fruit_veg.h5` changes, then
+Re-run it whenever `dl_model/efficientnet_b0_fruit_veg.h5` changes, then
 rebuild the app.
 
 ## How it works

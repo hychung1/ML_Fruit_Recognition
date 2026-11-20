@@ -4,7 +4,12 @@
 
 There are two independent pipelines in this folder:
   A) Classical ML: HSV + HOG features -> KNN / SVM / Random Forest
+     Scripts: classical_ml/
   B) Deep learning: EfficientNetB0 -> TFLite -> Flutter Android app
+     Scripts: deep_learning/
+
+Data folders (dataset/, results/, results_dl/, dl_model/, models/,
+features/) stay at this level and are shared by both pipelines.
 
 ------------------------------------------------------------------------
 0. PREREQUISITES
@@ -38,26 +43,26 @@ All commands are run from this folder (code/).
 1) Exploratory data analysis - class counts, distribution chart, samples.
    Output: results/eda_distribution.png, results/eda_samples.png
 
-    .venv\Scripts\python eda.py
+    .venv\Scripts\python classical_ml\eda.py
 
 2) Feature extraction - 512 HSV histogram + 288 HOG = 800 values per image.
    Cached in features/*_features.joblib; scaler saved to models/scaler.joblib.
    Only the training split is used to fit the StandardScaler (no leakage).
 
-    .venv\Scripts\python feature_extraction.py
+    .venv\Scripts\python classical_ml\feature_extraction.py
 
 3) Train and tune each classifier. Each script prints test metrics and a
    classification report, saves a confusion matrix in results/, and writes
    its tuned model to models/<name>_model.joblib.
 
-    .venv\Scripts\python train_knn.py
-    .venv\Scripts\python train_svm.py
-    .venv\Scripts\python train_rf.py
+    .venv\Scripts\python classical_ml\train_knn.py
+    .venv\Scripts\python classical_ml\train_svm.py
+    .venv\Scripts\python classical_ml\train_rf.py
 
 4) Compare the three models. Requires all three .joblib files from step 3.
    Output: results/metrics_summary.csv and results/comparison_chart.png
 
-    .venv\Scripts\python compare_models.py
+    .venv\Scripts\python classical_ml\compare_models.py
 
    Note: compare_models.py divides the total prediction time by 359, the
    number of images in the test split. Change that constant if your dataset
@@ -68,29 +73,29 @@ B. EFFICIENTNETB0 + STREAMLIT + ANDROID APP
 ------------------------------------------------------------------------
 1) (Optional) Inspect the data / generators used for the deep model:
 
-    .venv\Scripts\python data_processing.py
-    .venv\Scripts\python data_visualization.py
+    .venv\Scripts\python deep_learning\data_processing.py
+    .venv\Scripts\python deep_learning\data_visualization.py
 
 2) (Optional) Retrain EfficientNetB0 - two phases: frozen ImageNet base,
    then fine-tuning of the top layers. Best checkpoint is written to
-   trained_model/efficientnet_b0_fruit_veg.h5:
+   dl_model/efficientnet_b0_fruit_veg.h5:
 
-    .venv\Scripts\python train_efficientnet.py
+    .venv\Scripts\python deep_learning\train_efficientnet.py
 
 3) Evaluate the trained model on the test split. Prints accuracy, macro
    precision/recall/F1, a per-class report and saves a confusion matrix:
 
-    .venv\Scripts\python eval_efficientnet.py
+    .venv\Scripts\python deep_learning\eval_efficientnet.py
 
 4) Web demo - upload a single image and see the top-3 predictions:
 
-    .venv\Scripts\python -m streamlit run app.py
+    .venv\Scripts\python -m streamlit run deep_learning\app.py
 
 5) Export for the Android app. Writes fruit_recognition_app/assets/
    fruit_model.tflite (float16, ~8 MB) and labels.txt, then verifies that
    TFLite and Keras agree on one test image from every class:
 
-    .venv\Scripts\python convert_to_tflite.py
+    .venv\Scripts\python deep_learning\convert_to_tflite.py
 
 6) Run / build the Android app (Flutter SDK required):
 
@@ -116,6 +121,6 @@ TROUBLESHOOTING
 * Dataset paths not found -> confirm dataset/train, dataset/validation and
   dataset/test exist directly inside this code/ folder.
 * GPU out of memory while training EfficientNetB0
-  -> reduce BATCH_SIZE from 32 to 16 in train_efficientnet.py.
+  -> reduce BATCH_SIZE from 32 to 16 in deep_learning/train_efficientnet.py.
 * Old cached features after editing the dataset
-  -> delete the features/ folder and rerun feature_extraction.py.
+  -> delete the features/ folder and rerun classical_ml/feature_extraction.py.
