@@ -24,8 +24,10 @@ features/) stay at this level and are shared by both pipelines.
       dataset/validation/<class>/
       dataset/test/<class>/
 
-  dataset/, .venv/, models/ and features/ are ignored by git and must be
-  generated locally. results/ contains the reported charts and metrics.
+  dataset/, .venv/ and features/ are ignored by git and must be generated
+  locally. models/ already contains the team's trained KNN/SVM/Random Forest
+  models and scaler, so steps A3/A4 below can be skipped unless retraining.
+  results/ and results_dl/ contain the reported charts and metrics.
 
 Install Python packages from this folder:
 

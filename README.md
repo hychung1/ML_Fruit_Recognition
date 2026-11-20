@@ -19,7 +19,8 @@ both pipelines share the same dataset.
 | `results/` | Classical-model metrics and plots |
 | `results_dl/` | EfficientNetB0 training curve and confusion matrix |
 | `dl_model/` | Trained EfficientNetB0 checkpoints (`.h5`) |
-| `models/`, `features/` | Generated model/feature caches — ignored by git |
+| `models/` | Trained KNN, SVM and Random Forest models + `scaler.joblib` (committed, ready to use) |
+| `features/` | Generated feature caches — ignored by git |
 | `fruit_recognition_app/` | Flutter Android app (see its own [README](fruit_recognition_app/README.md)) |
 
 `classical_ml/`:
