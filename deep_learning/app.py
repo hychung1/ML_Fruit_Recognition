@@ -38,7 +38,7 @@ CLASS_NAMES = [
 # ---------------------------------------------------------
 @st.cache_resource
 def load_efficientnet_model():
-    model_path = os.path.join(PROJECT_ROOT, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
+    model_path = os.path.join(PROJECT_ROOT, 'model_dl', 'efficientnet_b0_fruit_veg.h5')
     model = load_model(model_path)
     return model
 

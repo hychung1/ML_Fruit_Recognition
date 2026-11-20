@@ -14,7 +14,7 @@ from tensorflow.keras.utils import load_img, img_to_array
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(HERE, 'fruit_recognition_app', 'assets')
-MODEL_H5 = os.path.join(HERE, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
+MODEL_H5 = os.path.join(HERE, 'model_dl', 'efficientnet_b0_fruit_veg.h5')
 
 os.makedirs(ASSETS, exist_ok=True)
 

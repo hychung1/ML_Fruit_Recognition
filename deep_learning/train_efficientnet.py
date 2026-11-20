@@ -93,7 +93,7 @@ model.compile(
 
 # Đặt các hàm Callbacks để tự động quản lý quá trình Train
 callbacks_phase1 = [
-    ModelCheckpoint(os.path.join(current_dir, 'dl_model', 'best_efficientnet_phase1.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
+    ModelCheckpoint(os.path.join(current_dir, 'model_dl', 'best_efficientnet_phase1.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
     EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1)
 ]
 
@@ -125,7 +125,7 @@ model.compile(
 
 # Callbacks cho Fine-tuning
 callbacks_phase2 = [
-    ModelCheckpoint(os.path.join(current_dir, 'dl_model', 'efficientnet_b0_fruit_veg.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
+    ModelCheckpoint(os.path.join(current_dir, 'model_dl', 'efficientnet_b0_fruit_veg.h5'), monitor='val_accuracy', save_best_only=True, verbose=1),
     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-7, verbose=1),
     EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True, verbose=1)
 ]

@@ -8,7 +8,7 @@ There are two independent pipelines in this folder:
   B) Deep learning: EfficientNetB0 -> TFLite -> Flutter Android app
      Scripts: deep_learning/
 
-Data folders (dataset/, results/, results_dl/, dl_model/, models/,
+Data folders (dataset/, results/, results_dl/, model_dl/, models/,
 features/) stay at this level and are shared by both pipelines.
 
 ------------------------------------------------------------------------
@@ -80,7 +80,7 @@ B. EFFICIENTNETB0 + STREAMLIT + ANDROID APP
 
 2) (Optional) Retrain EfficientNetB0 - two phases: frozen ImageNet base,
    then fine-tuning of the top layers. Best checkpoint is written to
-   dl_model/efficientnet_b0_fruit_veg.h5:
+   model_dl/efficientnet_b0_fruit_veg.h5:
 
     .venv\Scripts\python deep_learning\train_efficientnet.py
 

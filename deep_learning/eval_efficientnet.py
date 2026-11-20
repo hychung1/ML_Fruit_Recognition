@@ -14,7 +14,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 # 1. Đường dẫn & Tham số
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_PATH = os.path.join(current_dir, 'dataset', 'test')
-MODEL_PATH = os.path.join(current_dir, 'dl_model', 'efficientnet_b0_fruit_veg.h5')
+MODEL_PATH = os.path.join(current_dir, 'model_dl', 'efficientnet_b0_fruit_veg.h5')
 
 IMAGE_SIZE = (224, 224)
 BATCH_SIZE = 32

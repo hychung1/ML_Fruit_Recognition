@@ -18,7 +18,7 @@ both pipelines share the same dataset.
 | `dataset/` | Kaggle images (not in git — add locally, see below) |
 | `results/` | Classical-model metrics and plots |
 | `results_dl/` | EfficientNetB0 training curve and confusion matrix |
-| `dl_model/` | Trained EfficientNetB0 checkpoints (`.h5`) |
+| `model_dl/` | Trained EfficientNetB0 checkpoints (`.h5`) |
 | `models/` | Trained KNN, SVM and Random Forest models + `scaler.joblib` (committed, ready to use) |
 | `features/` | Generated feature caches — ignored by git |
 | `fruit_recognition_app/` | Flutter Android app (see its own [README](fruit_recognition_app/README.md)) |
@@ -39,7 +39,7 @@ both pipelines share the same dataset.
 | Script | What it does |
 | --- | --- |
 | `data_processing.py`, `data_visualization.py` | Image generators (augmentation) and exploratory plots |
-| `train_efficientnet.py` | Two-phase EfficientNetB0 training → `dl_model/` |
+| `train_efficientnet.py` | Two-phase EfficientNetB0 training → `model_dl/` |
 | `eval_efficientnet.py` | Test metrics, classification report, confusion matrix → `results_dl/` |
 | `convert_to_tflite.py` | Float16 TFLite export → `fruit_recognition_app/assets/`, with a Keras-vs-TFLite check |
 | `app.py` | Streamlit UI: upload an image, choose EfficientNetB0 / KNN / SVM / Random Forest, see top-3 predictions |
