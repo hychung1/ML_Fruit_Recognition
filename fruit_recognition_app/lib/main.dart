@@ -5,9 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import 'box_painter.dart';
+import 'detection.dart';
 import 'preprocess.dart';
 
 void main() => runApp(const FruitScannerApp());
+
+/// Interprets a float32 tensor's raw bytes as a flat list.
+Float32List _floats(Uint8List bytes) =>
+    bytes.buffer.asFloat32List(bytes.offsetInBytes, bytes.lengthInBytes >> 2);
 
 class FruitScannerApp extends StatelessWidget {
   const FruitScannerApp({super.key});
@@ -37,14 +43,15 @@ class _ScannerPageState extends State<ScannerPage>
     with WidgetsBindingObserver {
   CameraController? _camera;
   Interpreter? _interpreter;
+  Interpreter? _detector;
   List<String> _labels = const [];
   Float32List? _input;
+  Uint8List? _detectorInput;
   int _rotation = 90;
 
   String? _status = 'Starting camera...';
   String? _error;
-  String? _label;
-  double _confidence = 0;
+  List<Recognition> _detections = const [];
   bool _busy = false;
   bool _disposed = false;
 
@@ -66,6 +73,10 @@ class _ScannerPageState extends State<ScannerPage>
         'assets/fruit_model.tflite',
         options: InterpreterOptions()..threads = 4,
       );
+      final detector = await Interpreter.fromAsset(
+        'assets/detector.tflite',
+        options: InterpreterOptions()..threads = 4,
+      );
       final cameras = await availableCameras();
       final camera = cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.back,
@@ -81,18 +92,23 @@ class _ScannerPageState extends State<ScannerPage>
       if (_disposed) {
         controller.dispose();
         interpreter.close();
+        detector.close();
         return;
       }
 
       _interpreter?.close();
+      _detector?.close();
       setState(() {
         _camera = controller;
         _interpreter = interpreter;
+        _detector = detector;
         _labels = labels;
         _input = Float32List(kImageSize * kImageSize * 3);
+        _detectorInput = Uint8List(kDetectorSize * kDetectorSize * 3);
         // The app is locked to portrait, so the back camera only needs its
         // sensor rotation to become upright.
         _rotation = camera.sensorOrientation % 360;
+        _detections = const [];
         _status = null;
         _error = null;
       });
@@ -108,36 +124,53 @@ class _ScannerPageState extends State<ScannerPage>
   }
 
   void _onFrame(CameraImage image) {
-    if (_busy || _disposed || _input == null || _interpreter == null) return;
+    if (_busy || _disposed || _input == null || _detector == null) return;
     _busy = true;
-    _classify(image).whenComplete(() => _busy = false);
+    _processFrame(image).whenComplete(() => _busy = false);
   }
 
-  Future<void> _classify(CameraImage image) async {
+  Future<void> _processFrame(CameraImage image) async {
+    final detector = _detector;
+    final interpreter = _interpreter;
+    final input = _input;
+    final detectorInput = _detectorInput;
+    if (detector == null ||
+        interpreter == null ||
+        input == null ||
+        detectorInput == null ||
+        image.planes.length < 3) {
+      return;
+    }
+
     try {
-      final input = _input!;
-      if (image.planes.length < 3) return;
-      yuvToModelInput(input, image, _rotation);
+      yuvToDetectorInput(detectorInput, image, _rotation);
+      detector.getInputTensor(0).data = detectorInput;
+      detector.invoke();
+      final boxes = _floats(detector.getOutputTensor(0).data);
+      final classes = _floats(detector.getOutputTensor(1).data);
+      final scores = _floats(detector.getOutputTensor(2).data);
 
-      final interpreter = _interpreter;
-      if (interpreter == null || _disposed) return;
-      interpreter.getInputTensor(0).data = input.buffer.asUint8List();
-      interpreter.invoke();
-      final out = interpreter.getOutputTensor(0).data;
-      final probs = out.buffer.asFloat32List(
-        out.offsetInBytes,
-        out.lengthInBytes >> 2,
+      final picked = nonMaxSuppression(
+        decodeDetections(boxes, scores, classes),
+        maxBoxes: 3,
       );
+      final recognitions = <Recognition>[];
+      for (final box in picked) {
+        yuvToModelInput(input, image, _rotation, box.rect);
+        interpreter.getInputTensor(0).data = input.buffer.asUint8List();
+        interpreter.invoke();
+        final probs = _floats(interpreter.getOutputTensor(0).data);
 
-      var best = 0;
-      for (var i = 1; i < probs.length; i++) {
-        if (probs[i] > probs[best]) best = i;
+        var best = 0;
+        for (var i = 1; i < probs.length; i++) {
+          if (probs[i] > probs[best]) best = i;
+        }
+        if (probs[best] < 0.35 || best >= _labels.length) continue;
+        recognitions.add(Recognition(box.rect, _labels[best], probs[best]));
       }
+
       if (mounted && !_disposed) {
-        setState(() {
-          _label = _labels[best];
-          _confidence = probs[best];
-        });
+        setState(() => _detections = recognitions);
       }
     } catch (_) {
       // A dropped or malformed frame is normal while streaming; skip it.
@@ -162,6 +195,7 @@ class _ScannerPageState extends State<ScannerPage>
     WidgetsBinding.instance.removeObserver(this);
     _camera?.dispose();
     _interpreter?.close();
+    _detector?.close();
     super.dispose();
   }
 
@@ -178,7 +212,12 @@ class _ScannerPageState extends State<ScannerPage>
           fit: StackFit.expand,
           children: [
             if (camera != null && camera.value.isInitialized)
-              Center(child: CameraPreview(camera))
+              Center(
+                child: CameraPreview(
+                  camera,
+                  child: CustomPaint(painter: FruitBoxPainter(_detections)),
+                ),
+              )
             else
               _placeholder(),
             Positioned(
@@ -253,7 +292,7 @@ class _ScannerPageState extends State<ScannerPage>
   }
 
   Widget _resultCard() {
-    final label = _label;
+    final detections = _detections;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -265,26 +304,29 @@ class _ScannerPageState extends State<ScannerPage>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            label == null ? 'Point at a fruit or vegetable' : _title(label),
+            detections.isEmpty
+                ? 'Point at fruits or vegetables'
+                : '${detections.length} detected',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 26,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (label != null) ...[
+          for (final detection in detections) ...[
             const SizedBox(height: 4),
-            Text(
-              '${(_confidence * 100).toStringAsFixed(1)}% confident',
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: _confidence,
-                minHeight: 6,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _title(detection.label),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                Text(
+                  '${(detection.confidence * 100).toStringAsFixed(0)}%',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
             ),
           ],
         ],

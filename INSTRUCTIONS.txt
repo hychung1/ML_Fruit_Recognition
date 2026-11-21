@@ -112,6 +112,10 @@ B. EFFICIENTNETB0 + STREAMLIT + ANDROID APP
    Use app-arm64-v8a-release.apk for modern phones. The APK is not kept in
    git; build it or use the release published on GitHub.
 
+   v1.1.0 uses assets/detector.tflite (EfficientDet-Lite0) to find up to three
+   fruit boxes per frame, then classifies each crop with fruit_model.tflite.
+   The launcher icon is generated from assets/app_icon.png.
+
 IMPORTANT: In Keras 3, efficientnet.preprocess_input does nothing - the
 model performs rescaling/normalization internally. The converter and the
 Flutter app both supply raw 0-255 RGB pixels. Do not normalize again.

@@ -53,6 +53,29 @@ void main() {
     expect(out.every((v) => v == 200), isTrue);
   });
 
+  test('detector input keeps raw 0-255 RGB bytes', () {
+    final y = Uint8List(8 * 4)..fillRange(0, 32, 200);
+    final uv = Uint8List(4 * 2)..fillRange(0, 8, 128);
+    final image = CameraImage.fromPlatformInterface(
+      CameraImageData(
+        format: const CameraImageFormat(ImageFormatGroup.yuv420, raw: 35),
+        width: 8,
+        height: 4,
+        planes: [
+          CameraImagePlane(bytes: y, bytesPerRow: 8, bytesPerPixel: 1),
+          CameraImagePlane(bytes: uv, bytesPerRow: 4, bytesPerPixel: 1),
+          CameraImagePlane(bytes: Uint8List.fromList(uv), bytesPerRow: 4, bytesPerPixel: 1),
+        ],
+      ),
+    );
+
+    final out = Uint8List(kDetectorSize * kDetectorSize * 3);
+    yuvToDetectorInput(out, image, 0);
+
+    expect(out.length, 320 * 320 * 3);
+    expect(out.every((v) => v == 200), isTrue);
+  });
+
   test('rotation 90 maps the upright frame back to the sensor frame', () {
     final out = Float32List(kImageSize * kImageSize * 3);
     yuvToModelInput(out, _frame(), 90);
