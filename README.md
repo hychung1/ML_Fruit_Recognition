@@ -125,8 +125,7 @@ flutter build apk --release --split-per-abi
 
 The APK is **not** stored in git; build it or download the published arm64 APK from this
 repository's GitHub Releases. App v1.1.0 detects up to three fruits per camera
-frame (green boxes + labels) using `assets/detector.tflite` and ships the new
-launcher icon from `assets/app_icon.png`.
+frame (green boxes + labels) using `assets/detector.tflite`.
 
 Note: in TensorFlow/Keras 3, `efficientnet.preprocess_input` is a no-op because the
 rescaling/normalization is inside the model. Both `convert_to_tflite.py` and the Flutter
